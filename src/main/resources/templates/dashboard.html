@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Seguridad Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/custom.css}">
+</head>
+<body>
+    <!-- Barra de Navegacion Superior -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand text-primary fw-bold" th:href="@{/dashboard}">Seguridad Web U9</a>
+            <button class="navbar-toggler" type="button" data-bs-dismiss="collapse" data-bs-target="#navContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/dashboard}">Mis Tareas</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-warning fw-semibold" th:href="@{/admin}">Panel Administrador</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-light small">
+                        <!-- Mitigacion XSS con th:text -->
+                        Conectado: <strong th:text="${usuario.email}">email@dominio.com</strong>
+                        <span class="badge ms-1"
+                              th:classappend="${usuario.rol == 'ROLE_ADMIN'} ? 'badge-admin' : 'badge-user'"
+                              th:text="${usuario.rol}">ROL</span>
+                    </span>
+
+                    <!-- Formulario de Logout protegido con CSRF (Obligatorio en Spring Security 6) -->
+                    <form th:action="@{/logout}" method="post" class="d-inline m-0">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- ========================================================================================== -->
+        <!-- CONTRASTE DIDACTICO DE SEGURIDAD - MITIGACION DE VULNERABILIDAD XSS (Cross-Site Scripting)  -->
+        <!-- ========================================================================================== -->
+        <div class="card mb-4 border-info">
+            <div class="card-header bg-info-subtle text-info-emphasis fw-bold d-flex justify-content-between align-items-center">
+                <span>Auditoría de Seguridad: Mitigación Activa de Cross-Site Scripting (XSS)</span>
+                <span class="badge bg-primary">Thymeleaf Escaping</span>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    Bienvenido,
+                    <!-- ============================================================================== -->
+                    <!-- [VERSION SEGURA IMPLEMENTADA]:                                                 -->
+                    <!-- 'th:text' aplica escaping contextual HTML automatico, transformando caracteres  -->
+                    <!-- peligrosos (<, >, &, ", ') en entidades HTML (&lt;, &gt;, etc.). Si el nombre   -->
+                    <!-- contuviera: <script>alert(document.cookie)</script>, se renderiza como texto.    -->
+                    <!-- ============================================================================== -->
+                    <span class="fw-bold fs-5 text-primary" th:text="${usuario.nombre}">Nombre de Usuario</span>
+
+                    <!-- ============================================================================== -->
+                    <!-- [VERSION INSEGURA VULNERABLE A XSS (LINEA DE CONTRASTE DIDACTICO COMENTADA)]:  -->
+                    <!-- 'th:utext' (unescaped text) inserta el contenido sin sanitizar directamente en  -->
+                    <!-- el DOM. Si un atacante inyectara un payload malicioso como nombre de usuario,  -->
+                    <!-- se ejecutaria inmediatamente en el navegador del usuario o del administrador:   -->
+                    <!-- <span class="fw-bold fs-5 text-danger" th:utext="${usuario.nombre}">INSEGURO</span> -->
+                    <!-- ============================================================================== -->
+                </p>
+                <div class="security-box">
+                    <strong>Explicación de Arquitectura de Seguridad:</strong>
+                    En este dashboard, el atributo <code>th:text</code> garantiza que cualquier valor proveniente
+                    de la base de datos MySQL sea codificado como texto plano. La versión comentada con <code>th:utext</code>
+                    expondría a la aplicación a ataques XSS almacenados (Stored XSS), permitiendo la exfiltración
+                    de la cookie <code>JSESSIONID</code> o secuestro de la sesión activa del usuario.
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas de Accion -->
+        <div th:if="${exitoTarea}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${exitoTarea}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorTarea}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorTarea}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Columna Izquierda: Listado y Busqueda Segura de Tareas -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="m-0 fw-bold">Mis Tareas Asignadas</h5>
+                        <span class="badge bg-secondary" th:text="${tareas.size()} + ' tareas'">0 tareas</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Busqueda Parametrizada Segura contra SQL Injection -->
+                        <form th:action="@{/dashboard}" method="get" class="mb-4">
+                            <div class="input-group">
+                                <input type="text" name="q" class="form-control"
+                                       placeholder="Buscar tarea por título (consulta segura parametrizada)..."
+                                       th:value="${terminoBusqueda}">
+                                <button class="btn btn-outline-primary" type="submit">Buscar</button>
+                                <a th:if="${terminoBusqueda}" th:href="@{/dashboard}" class="btn btn-outline-secondary">Limpiar</a>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Consulta ejecutada mediante <code>@Query</code> con JPQL parametrizado <code>:texto</code> (inmune a SQLi).
+                            </small>
+                        </form>
+
+                        <!-- Tabla de Tareas -->
+                        <div class="table-responsive" th:if="${!tareas.isEmpty()}">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50px;">Estado</th>
+                                        <th>Título y Descripción</th>
+                                        <th class="text-end" style="width: 140px;">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="t : ${tareas}">
+                                        <td>
+                                            <span th:if="${t.completada}" class="badge bg-success">Lista</span>
+                                            <span th:unless="${t.completada}" class="badge bg-warning text-dark">Pendiente</span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold"
+                                                 th:classappend="${t.completada} ? 'task-completed' : ''"
+                                                 th:text="${t.titulo}">Título de la Tarea</div>
+                                            <small class="text-muted" th:text="${t.descripcion}">Descripción</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <form th:action="@{'/dashboard/tareas/' + ${t.id} + '/toggle'}" method="post" class="d-inline">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                                <button type="submit" class="btn btn-sm"
+                                                        th:classappend="${t.completada} ? 'btn-outline-secondary' : 'btn-outline-success'"
+                                                        th:text="${t.completada} ? 'Reabrir' : 'Completar'">
+                                                    Completar
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div th:if="${tareas.isEmpty()}" class="text-center py-5 text-muted">
+                            <p class="mb-0">No se encontraron tareas registradas o que coincidan con la búsqueda.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Formulario para Agregar Nueva Tarea -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="m-0 fw-bold">Nueva Tarea</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/dashboard/tareas}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <div class="mb-3">
+                                <label for="titulo" class="form-label small fw-semibold">Título *</label>
+                                <input type="text" class="form-control" id="titulo" name="titulo"
+                                       placeholder="Título representativo" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label small fw-semibold">Descripción</label>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3"
+                                          placeholder="Detalles adicionales de la actividad..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 fw-semibold">Guardar Tarea</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Resumen de Coexistencia de Seguridad -->
+                <div class="card shadow-sm mt-4 border-warning">
+                    <div class="card-header bg-warning-subtle text-warning-emphasis fw-bold small">
+                        Arquitectura de Coexistencia Activa
+                    </div>
+                    <div class="card-body small">
+                        <p class="mb-1"><strong>Navegador Web:</strong> Sesión HTTP con cookie <code>JSESSIONID</code> + CSRF Token activo.</p>
+                        <p class="mb-0"><strong>API REST:</strong> Tokens Bearer JWT en <code>/api/**</code> completamente Stateless sin sesiones.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

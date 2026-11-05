@@ -1,0 +1,49 @@
+/* Estilos personalizados para seguridad-web */
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #1e40af;
+    --dark-bg: #0f172a;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+}
+
+body {
+    background-color: #f8fafc;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.badge-admin {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge-user {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.task-completed {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+.security-box {
+    background: #f1f5f9;
+    border-left: 4px solid #3b82f6;
+    padding: 1rem;
+    border-radius: 0 0.5rem 0.5rem 0;
+    font-size: 0.9rem;
+}
