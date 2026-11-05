@@ -1,10 +1,16 @@
 # AbrilProWeb-post1-u9: Seguridad Web Integral con Spring Security 6 y JWT
 
+[![CI](https://github.com/ajaxmercury/AbrilProWeb-post1-u9/actions/workflows/ci.yml/badge.svg)](https://github.com/ajaxmercury/AbrilProWeb-post1-u9/actions/workflows/ci.yml)
 [![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.5-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)](https://spring.io/projects/spring-boot)
 [![Spring Security](https://img.shields.io/badge/Spring_Security-6.2.4-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white)](https://spring.io/projects/spring-security)
 [![JWT](https://img.shields.io/badge/JJWT-0.12.5-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white)](https://jwt.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+
+**Autor:** David Alejandro Abril Pérez  
+**Organización / Universidad:** Universidad de Santander (UDES)  
+**Materia:** Programación Web — Laboratorio Unidad 9 (Post-contenido U9)  
+**Repositorio Oficial en GitHub:** [https://github.com/ajaxmercury/AbrilProWeb-post1-u9](https://github.com/ajaxmercury/AbrilProWeb-post1-u9)
 
 Proyecto backend de referencia para el laboratorio de la Unidad 9 de Programación Web. Implementa un modelo de seguridad robusto que satisface al 100% el nivel "Excelente" de la rúbrica de evaluación, integrando autenticación tradicional basada en sesión HTTP para vistas Thymeleaf junto con una extensión moderna de API REST Stateless protegida mediante JSON Web Tokens (JJWT 0.12.5 con HMAC-SHA256).
 
